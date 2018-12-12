@@ -1,30 +1,55 @@
-<template></template>
+<template>
+  <div>
+    <slot></slot>
+  </div>
+</template>
 <script>
-  export default {
-    created () {
-      this.$on('draggable-move', function ({ left, top, width, height }) {
-        // 获取横纵坐标跨度
-        const minx = left, maxx = left + width, miny = top, maxy = top + height
-        // 元素位置+宽高检测hover, x y轴均有交集即为hover
-        if (!(minx > this.left + this.width || maxx < this.left) && !(miny > this.top + this.height || maxy < this.top)) {
-          // 高度差+1/2元素高度作为插入位置判断标准
-          const blockIndex = this.getHoverIndex(top - this.top + height * 0.5)
+  import DropZone from './DropZone.js'
+  import { getOffset } from '@/util'
 
-          // 已有mark 位置相同时不做操作
-          if (this.isHover && this.insertingTemplate && this.insertingTemplate.blockIndex === blockIndex) {
-            return
-          }
-          this.addMark(blockIndex)
-          this.isHover = true
-          this.insertingTemplate = {
-            blockIndex
-          }
-        } else {
-          // 未hover时移除mark
-          this.isHover = false
-          this.insertingTemplate = null
-          this.removeMark()
+  export default {
+    props: {
+      refName: {
+        type: String
+      }
+    },
+    mounted () {
+      const vm = this
+      const el = this.$el
+      const offset = getOffset(el)
+
+      this.dropZone = new DropZone(el, {
+        refName: this.refName,
+        left: offset.left,
+        top: offset.top,
+        width: el.offsetWidth,
+        height: el.offsetHeight,
+        onTemplateClicked(item) {
+          vm.$emit('templateClicked', item)
+        },
+        onTemplateRemoved() {
+          vm.$emit('templateRemoved')
         }
+      }) 
+
+      this.$on('draggableMove', ({ left, top, width, height }) => {
+        this.dropZone.detectMove({ left, top, width, height })
+      })
+
+      this.$on('draggableDragend', (callback) => {
+        callback(this.dropZone.isHover)
+      })
+
+      this.$on('removeItem', item => {
+        this.dropZone.removeItem(this)
+      })
+
+      this.$on('moveTemplateToMark', item => {
+        this.dropZone.moveTemplateToMark(this)
+      })
+
+      this.$on('insertTemplateToMark', option => {
+        this.dropZone.insertTemplateToMark(option)
       })
     }
   }

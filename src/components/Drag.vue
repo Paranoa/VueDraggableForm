@@ -9,9 +9,8 @@
   export default {
     name: 'drag',
     props: {
-      dropzone: {
-        type: Object,
-        default: null
+      dropzoneName: {
+        type: String,
       }
     },
     computed: {
@@ -41,6 +40,10 @@
       }    
     },
     mounted () {
+      const vm = this
+      console.log(this.$vnode.context.$refs)
+      this.dropzone = this.$vnode.context.$refs[this.dropzoneName]
+      this.$emit('dropzoneLoaded', this.dropzone)
       if (!this.proxyContainer) {
         const el = document.createElement('div')
         el.className = 'proxy-container'
@@ -69,7 +72,8 @@
           this.$emit('dragmove', event, offsets)
 
           if (this.dropzone) {
-            this.dropzone.detectMove(offsets)
+            // this.dropzone.detectMove(offsets)
+            this.dropzone.$emit('draggableMove', offsets)
           }
         }
       })
@@ -80,9 +84,17 @@
           this.isMouseDown = false
           this.$emit('dragend', event)
 
-          if(this.dropzone && this.dropzone.isHover) {
-            this.dropzone.isHover = false
-            this.$emit('droped')
+          // if(this.dropzone && this.dropzone.isHover) {
+          //   this.dropzone.isHover = false
+          //   this.$emit('droped')
+          // }
+
+          if (this.dropzone) {
+            this.dropzone.$emit('draggableDragend', isHover => {
+              if (isHover) {
+                this.$emit('droped')
+              }
+            })
           }
         }
       })

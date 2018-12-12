@@ -2,8 +2,9 @@ import Vue from 'vue'
 import FormItem from '@/components/FormItem'
 import store from '@/store'
 
-function DropZone (el, { left, top, width, height, onTemplateClicked, onTemplateRemoved }) {
+function DropZone (el, { refName, left, top, width, height, onTemplateClicked, onTemplateRemoved }) {
   this.el = el
+  this.refName = refName
   this.left = left
   this.top = top
   this.width = width
@@ -109,7 +110,7 @@ DropZone.prototype.insertTemplateToMark = function (options) {
       store,
       el: div,
       propsData: {
-        dropzone: _this,
+        dropzoneName: this.refName,
         ...newOptions,
         onmousedown: onMouseDown
       }
