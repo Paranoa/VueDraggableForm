@@ -2,15 +2,15 @@ import Vue from 'vue'
 import FormItem from '@/components/FormItem'
 import store from '@/store'
 
-function DropZone (el, { refName, left, top, width, height, onTemplateClicked, onTemplateRemoved }) {
+function DropZone (el, { ref, left, top, width, height, onTemplateClicked, onTemplateRemoved }) {
+  this.ref = ref
   this.el = el
-  this.refName = refName
   this.left = left
   this.top = top
   this.width = width
   this.height = height
   this.markHeight = 11
-  this.isHover = false
+  this.isHover = false  // 只维护了一个isHover 一次只能控制一个拖拽元素的Hover状况
   this.formItems = []
   this.onTemplateClicked = onTemplateClicked
   this.onTemplateRemoved = onTemplateRemoved
@@ -92,25 +92,24 @@ DropZone.prototype.insertTemplateToMark = function (options) {
     const beforeElement = this.el.childNodes[this.insertingTemplate.blockIndex]
     this.el.insertBefore(div, beforeElement)
 
-    const _this = this
     // 初始化参数是一个复制
     const newOptions = JSON.parse(JSON.stringify(options))
     const formItemConstructor = Vue.extend(FormItem)
 
     // click时设置active className
-    const onMouseDown = function () {
-      _this.formItems.forEach(item => {
+    const onMouseDown = () => {
+      this.formItems.forEach(item => {
         item.$el.className = item.$el.className.replace(/\sactive|active\s/g, '').trim()
       })
       formItem.$el.className += ' active'
-      _this.onTemplateClicked && _this.onTemplateClicked(formItem)
+      this.onTemplateClicked && this.onTemplateClicked(formItem)
     }
 
     const formItem = new formItemConstructor({
       store,
       el: div,
       propsData: {
-        dropzoneName: this.refName,
+        dropzone: this.ref,
         ...newOptions,
         onmousedown: onMouseDown
       }
@@ -138,6 +137,7 @@ DropZone.prototype.moveTemplateToMark = function(item) {
       // 同步数据模型
       this.formItems.splice(moveFrom, 1) 
       this.formItems.splice(moveTo > moveFrom? moveTo - 1: moveTo, 0, item) 
+      this.isHover = false
     }
   }
 }

@@ -1,5 +1,5 @@
 <template>
-  <Drag :dropzoneName="dropzoneName" @droped="droped" @dragmove="dragmove" @dragend="dragend" @dropzoneLoaded="dropzoneLoaded">
+  <Drag :dropzone="dropzone" @droped="droped" @dragmove="dragmove" @dragend="dragend">
     <template v-if="type === 'singleInput'">
       <div @mousedown="mousedown($event)" class="form-item">
         <i @click.stop="remove($event)" class="form-item-remove">x</i>
@@ -24,8 +24,8 @@
         type: String,
         default: 'singleInput'
       },
-      dropzoneName: {
-        type: String
+      dropzone: {
+        type: Object
       },
       options: {
         type: Object,
@@ -49,9 +49,6 @@
       Drag
     },
     methods: {
-      dropzoneLoaded(dropzone) {
-        this.dropzone = dropzone
-      },
       dragmove() {
         if (!/\sdragging|dragging\s/.test(this.$el.className)) {
           this.$el.className += ' dragging'
@@ -61,11 +58,9 @@
         this.$el.className = this.$el.className.replace(/\sdragging|dragging\s/g, '').trim()
       },
       remove() {
-        // this.dropzone.removeItem(this)
         this.dropzone.$emit('removeItem', this)
       },
       droped() {
-        // this.dropzone.moveTemplateToMark(this)
         this.dropzone.$emit('moveTemplateToMark', this)
       },
       mousedown (event) {

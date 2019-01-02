@@ -11,6 +11,9 @@
     props: {
       dropzoneName: {
         type: String,
+      },
+      dropzone: {
+        type: Object
       }
     },
     computed: {
@@ -37,21 +40,8 @@
         }
         this.$store.commit('setProxyElement', element)
         this.$emit('dragstart', event)
-      }    
-    },
-    mounted () {
-      const vm = this
-      console.log(this.$vnode.context.$refs)
-      this.dropzone = this.$vnode.context.$refs[this.dropzoneName]
-      this.$emit('dropzoneLoaded', this.dropzone)
-      if (!this.proxyContainer) {
-        const el = document.createElement('div')
-        el.className = 'proxy-container'
-        this.$root.$el.appendChild(el)
-        this.$store.commit('setProxyContainer', el)
-      }      
-
-      window.addEventListener('mousemove', event => {
+      },
+      mousemove (event) {
         if (this.isMouseDown) {
           const nx = event.clientX
           const ny = event.clientY
@@ -72,32 +62,41 @@
           this.$emit('dragmove', event, offsets)
 
           if (this.dropzone) {
-            // this.dropzone.detectMove(offsets)
             this.dropzone.$emit('draggableMove', offsets)
           }
         }
-      })
-
-      window.addEventListener('mouseup', event => {
+      },
+      mouseup (event) {
         if (this.isMouseDown) {
           this.proxyContainer.style.display = 'none'
           this.isMouseDown = false
           this.$emit('dragend', event)
 
-          // if(this.dropzone && this.dropzone.isHover) {
-          //   this.dropzone.isHover = false
-          //   this.$emit('droped')
-          // }
-
-          if (this.dropzone) {
+          const xOffset = event.clientX - this.x
+          const yOffset = event.clientY - this.y
+          // 未发生偏移时(只原地点击,未发生拖动) 不触发droped事件
+          if (!(xOffset === 0 && yOffset === 0) && this.dropzone) {
             this.dropzone.$emit('draggableDragend', isHover => {
-              if (isHover) {
-                this.$emit('droped')
-              }
+              isHover && this.$emit('droped')
             })
           }
         }
-      })
+      }
+    },
+    mounted () {
+      if (!this.proxyContainer) {
+        const el = document.createElement('div')
+        el.className = 'proxy-container'
+        this.$root.$el.appendChild(el)
+        this.$store.commit('setProxyContainer', el)
+      }      
+
+      window.addEventListener('mousemove', this.mousemove)
+      window.addEventListener('mouseup', this.mouseup)
+    },
+    beforeDestroy () {
+      window.removeEventListener('mousemove', this.mousemove)
+      window.removeEventListener('mouseup', this.mouseup)
     }
   }
 

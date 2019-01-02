@@ -1,6 +1,5 @@
 <template>
   <div>
-    <slot></slot>
   </div>
 </template>
 <script>
@@ -8,18 +7,13 @@
   import { getOffset } from '@/util'
 
   export default {
-    props: {
-      refName: {
-        type: String
-      }
-    },
     mounted () {
       const vm = this
       const el = this.$el
       const offset = getOffset(el)
 
       this.dropZone = new DropZone(el, {
-        refName: this.refName,
+        ref: this,
         left: offset.left,
         top: offset.top,
         width: el.offsetWidth,
@@ -36,16 +30,16 @@
         this.dropZone.detectMove({ left, top, width, height })
       })
 
-      this.$on('draggableDragend', (callback) => {
+      this.$on('draggableDragend', callback => {
         callback(this.dropZone.isHover)
       })
 
       this.$on('removeItem', item => {
-        this.dropZone.removeItem(this)
+        this.dropZone.removeItem(item)
       })
 
       this.$on('moveTemplateToMark', item => {
-        this.dropZone.moveTemplateToMark(this)
+        this.dropZone.moveTemplateToMark(item)
       })
 
       this.$on('insertTemplateToMark', option => {
