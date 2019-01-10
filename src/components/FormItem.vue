@@ -17,7 +17,7 @@
   </Drag>
 </template>
 <script>
-  import Drag from '@/components/Drag'
+  import Drag from '@/components/Drag/Drag'
   export default {
     props: {
       type: {

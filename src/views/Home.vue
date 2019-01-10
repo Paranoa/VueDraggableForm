@@ -1,10 +1,10 @@
 <template>
   <div>
     <div style="margin-bottom: 20px">
-      <Drag :dropzone="dropzone" @droped="droped(htmlTemplate[0])">
+      <Drag :dropzone="dropzone" @droped="drop => droped(drop, htmlTemplate[0])">
         <div style="width: 100px; height: 40px; border: 1px solid #aaa">单行输入框</div>
       </Drag>
-      <Drag :dropzone="dropzone" @droped="droped(htmlTemplate[1])" style="margin-left: 10px">
+      <Drag :dropzone="dropzone" @droped="drop => droped(drop, htmlTemplate[1])" style="margin-left: 10px">
         <div style="width: 200px; height: 40px; border: 1px solid #aaa">单选框</div>
       </Drag>
     </div>
@@ -39,8 +39,8 @@
   </div>
 </template>
 <script>
-  import Drag from '@/components/Drag'
-  import Drop from '@/components/DropZone.vue'
+  import Drag from '@/components/Drag/Drag'
+  import Drop from '@/components/Drop/Drop'
   import Vue from 'vue'
 
   export default {
@@ -73,16 +73,19 @@
       }
     },
     methods: {
-      droped(options) {
-        this.dropzone.$emit('insertTemplateToMark', options)
+      droped(drop, options) {
+        drop.$emit('insertTemplateToMark', options)
       },
       exportForm() {
         console.log(this.dropzone.dropZone.formItems)
       },
-      onTemplateClicked(item) {
+      onTemplateClicked({ type, options }) {
+        // console.log(item)
+        // $(item.$el).addClass('active').siblings('.ui-draggable').removeClass('active')
+
         // 插入一个模板后，设置当前的编辑选项
-        this.editOptions.type = item.$props.type
-        this.editOptions.options = item.$props.options
+        this.editOptions.type = type
+        this.editOptions.options = options
       },
       onTemplateRemoved() {
         // 删除一个模板后，当前编辑选项设为空

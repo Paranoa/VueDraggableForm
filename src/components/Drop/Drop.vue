@@ -1,12 +1,21 @@
 <template>
-  <div>
+  <div class="ui-dropzone">
   </div>
 </template>
 <script>
   import DropZone from './DropZone.js'
+  import FormItem from '@/components/FormItem'
   import { getOffset } from '@/util'
 
   export default {
+    data() {
+      return {
+        formItems: []
+      }
+    },
+    components: {
+      FormItem
+    },
     mounted () {
       const vm = this
       const el = this.$el
@@ -24,14 +33,16 @@
         onTemplateRemoved() {
           vm.$emit('templateRemoved')
         }
-      }) 
+      })
 
       this.$on('draggableMove', ({ left, top, width, height }) => {
         this.dropZone.detectMove({ left, top, width, height })
       })
 
       this.$on('draggableDragend', callback => {
-        callback(this.dropZone.isHover)
+        this.dropZone.removeMark()
+        // 回调当前是否有元素位于Drop上方
+        callback(this.dropZone.inserting.blockIndex !== -1)
       })
 
       this.$on('removeItem', item => {
