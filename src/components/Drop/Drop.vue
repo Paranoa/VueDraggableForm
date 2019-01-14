@@ -1,7 +1,4 @@
-<template>
-  <div class="ui-dropzone">
-  </div>
-</template>
+
 <script>
   import DropZone from './DropZone.js'
   import FormItem from '@/components/FormItem'
@@ -16,28 +13,26 @@
     components: {
       FormItem
     },
+    render: function(h) {
+      console.log('render')
+      return h(
+        'h' + this.level,   // 标签名称
+        this.$slots.default // 子元素数组
+      )
+    },
     mounted () {
       const vm = this
       const el = this.$el
       const offset = getOffset(el)
 
       this.dropZone = new DropZone(el, {
-        ref: this,
         left: offset.left,
         top: offset.top,
         width: el.offsetWidth,
-        height: el.offsetHeight,
-        onTemplateClicked(item) {
-          vm.$emit('templateClicked', item)
-        },
-        onTemplateRemoved() {
-          vm.$emit('templateRemoved')
-        }
+        height: el.offsetHeight
       })
 
-      this.$on('draggableMove', ({ left, top, width, height }) => {
-        this.dropZone.detectMove({ left, top, width, height })
-      })
+      this.$on('draggableMove', this.dropZone.detectMove.bind(this.dropZone))
 
       this.$on('draggableDragend', callback => {
         this.dropZone.removeMark()
@@ -45,17 +40,11 @@
         callback(this.dropZone.inserting.blockIndex !== -1)
       })
 
-      this.$on('removeItem', item => {
-        this.dropZone.removeItem(item)
-      })
+      this.$on('removeItem', this.dropZone.removeItem.bind(this.dropZone))
 
-      this.$on('moveTemplateToMark', item => {
-        this.dropZone.moveTemplateToMark(item)
-      })
+      this.$on('moveTemplateToMark', this.dropZone.moveTemplateToMark.bind(this.dropZone))
 
-      this.$on('insertTemplateToMark', option => {
-        this.dropZone.insertTemplateToMark(option)
-      })
+      this.$on('insertTemplateToMark', this.dropZone.insertTemplateToMark.bind(this.dropZone))
     }
   }
 </script>

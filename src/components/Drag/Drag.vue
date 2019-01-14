@@ -50,7 +50,10 @@
           proxyContainer.style.display = 'block'
 
           const offsets = {
-            left: nl, top: nt, width, height
+            left: nl + window.scrollX,
+            top: nt + window.scrollY,
+            width,
+            height
           }
 
           this.$emit('dragmove', event, offsets)
@@ -70,7 +73,6 @@
 
           const xOffset = event.clientX - this.x
           const yOffset = event.clientY - this.y
-          // 未发生偏移时(只原地点击,未发生拖动) 不触发droped事件
           if (this.dropzone) {
             this.dropzone.$emit('draggableDragend', isHover => {
               isHover && this.$emit('droped', this.dropzone)

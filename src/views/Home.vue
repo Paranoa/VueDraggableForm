@@ -1,16 +1,31 @@
 <template>
   <div>
     <div style="margin-bottom: 20px">
-      <Drag :dropzone="dropzone" @droped="drop => droped(drop, htmlTemplate[0])">
-        <div style="width: 100px; height: 40px; border: 1px solid #aaa">单行输入框</div>
+      <Drag
+        :dropzone="dropzone"
+        @droped="drop => droped(drop, formItemTemplate.singleInput)">
+        <div class="drag-item">单行输入框</div>
       </Drag>
-      <Drag :dropzone="dropzone" @droped="drop => droped(drop, htmlTemplate[1])" style="margin-left: 10px">
-        <div style="width: 200px; height: 40px; border: 1px solid #aaa">单选框</div>
+      <Drag style="margin-left: 10px"
+        :dropzone="dropzone"
+        @droped="drop => droped(drop, formItemTemplate.singleSelect)">
+        <div class="drag-item">单选框</div>
       </Drag>
     </div>
-    <drop ref="dropzone" style="float:left; width: 300px; border: 1px solid #aaa; height: 500px; position: relative; margin-left: 100px"
-      @templateClicked="onTemplateClicked"
-      @templateRemoved="onTemplateRemoved">
+    <drop class="drop-zone" ref="dropzone">
+      <FormItem
+        type="singleInput"
+        :dropzone="dropzone"
+        :options="formItemTemplate.singleInput.opts"
+        :onMousedown="onTemplateClicked"
+        :onRemove="onTemplateRemoved" />
+
+      <FormItem
+        type="singleInput"
+        :dropzone="dropzone"
+        :options="formItemTemplate.singleInput.opts"
+        :onMousedown="onTemplateClicked"
+        :onRemove="onTemplateRemoved" />
     </drop>
     <div v-if="editOptions" style="float:left; margin-left: 100px; border: 1px solid #aaa">
       <template v-if="editOptions.type === 'singleInput'">
@@ -23,7 +38,7 @@
         单行选择框
         标题: <input v-model="editOptions.options.label">
         提示文字: <input v-model="editOptions.options.placeholder">
-        选项: 
+        选项:
         <ul>
           <li v-for="(opt, index) of editOptions.options.opts">
             <input v-model="opt.value">
@@ -39,32 +54,37 @@
   </div>
 </template>
 <script>
+  import Vue from 'vue'
   import Drag from '@/components/Drag/Drag'
   import Drop from '@/components/Drop/Drop'
-  import Vue from 'vue'
+  import FormItem from '@/components/FormItem'
 
   export default {
     name: 'home',
     components: {
       Drag,
-      Drop
+      Drop,
+      FormItem
     },
     data() {
       return {
-        htmlTemplate: [{
-          type: 'singleInput',
-          options: {
-            label: '单行输入框',
-            placeholder: '请输入'
+        formItemTemplate: {
+          singleInput: {
+            type: 'singleInput',
+            options: {
+              label: '单行输入框',
+              placeholder: '请输入'
+            }
+          },
+          singleSelect: {
+            type: 'singleSelect',
+            options: {
+              label: '单选框',
+              placeholder: '请选择',
+              opts: [{}]
+            }
           }
-        },{
-          type: 'singleSelect',
-          options: {
-            label: '单选框',
-            placeholder: '请选择',
-            opts: [{}]
-          }
-        }],
+        },
         editOptions: {
           type: '',
           options: null
@@ -74,22 +94,38 @@
     },
     methods: {
       droped(drop, options) {
-        drop.$emit('insertTemplateToMark', options)
+        // 实例化参数是一个复制
+        const newOptions = JSON.parse(JSON.stringify(options))
+        const formItemConstructor = Vue.extend(FormItem)
+        
+        drop.$emit('insertTemplateToMark', {
+          constructor: formItemConstructor,
+          propsData: {
+            dropzone: this.dropzone,
+            ...newOptions,
+            onMousedown: this.onTemplateClicked,
+            onRemove: this.onTemplateRemoved
+          }
+        }, item => {
+          this.onTemplateClicked(item)
+        })
       },
       exportForm() {
         console.log(this.dropzone.dropZone.formItems)
       },
-      onTemplateClicked({ type, options }) {
-        // console.log(item)
-        // $(item.$el).addClass('active').siblings('.ui-draggable').removeClass('active')
+      onTemplateClicked(item) {
+        $(item.$el).addClass('active').siblings('.ui-draggable').removeClass('active')
 
         // 插入一个模板后，设置当前的编辑选项
-        this.editOptions.type = type
-        this.editOptions.options = options
+        this.editOptions.type = item.$props.type
+        this.editOptions.options = item.$props.options
       },
       onTemplateRemoved() {
         // 删除一个模板后，当前编辑选项设为空
-        // this.editOptions = {}
+        this.editOptions.type = ''
+      },
+      formItemClick() {
+        console.log(arguments)
       }
     },
     mounted () {
@@ -100,4 +136,8 @@
 
 <style>
   .drop-zone-mark { border: 1px solid red; width: 100%; margin: 5px 0;}
+</style>
+<style scoped>
+  .drag-item { width: 200px; height: 40px; border: 1px solid #aaa; background: #eee }
+  .drop-zone { float:left; width: 300px; border: 1px solid #aaa; height: 500px; position: relative; margin-left: 100px }
 </style>

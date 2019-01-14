@@ -1,19 +1,21 @@
 <template>
-  <Drag :dropzone="dropzone" @droped="droped" @dragmove="dragmove" @dragend="dragend">
-    <template v-if="type === 'singleInput'">
-      <div @mousedown="mousedown($event)" class="form-item">
-        <i @click.stop="remove($event)" class="form-item-remove">x</i>
-        <label>{{ options.label }}</label>
-        <span class="fr">{{ placeholder }}</span>
-      </div>
-    </template>
-    <template v-else-if="type === 'singleSelect'">
-      <div @mousedown="mousedown($event)" class="form-item" style="line-height: 60px">
-        <i @click.stop="remove($event)" class="form-item-remove">x</i>
-        <label>{{ options.label }}</label>
-        <span class="fr">{{ placeholder }} ></span>
-      </div>
-    </template>
+  <Drag :dropzone="dropzone" @dragmove="dragmove" @dragend="dragend" @droped="droped">
+    <div @mousedown="mousedown">
+      <template v-if="type === 'singleInput'">
+        <div class="form-item">
+          <i @click.stop="remove" class="form-item-remove">x</i>
+          <label>{{ options.label }}</label>
+          <span class="fr">{{ placeholder }}</span>
+        </div>
+      </template>
+      <template v-else-if="type === 'singleSelect'">
+        <div class="form-item" style="line-height: 60px">
+          <i @click.stop="remove" class="form-item-remove">x</i>
+          <label>{{ options.label }}</label>
+          <span class="fr">{{ placeholder }} ></span>
+        </div>
+      </template>
+    </div>
   </Drag>
 </template>
 <script>
@@ -36,7 +38,10 @@
           }
         }
       },
-      onmousedown: {
+      onMousedown: {
+        type: Function
+      },
+      onRemove: {
         type: Function
       }
     },
@@ -50,23 +55,20 @@
     },
     methods: {
       dragmove() {
-        if (!/\sdragging|dragging\s/.test(this.$el.className)) {
-          this.$el.className += ' dragging'
-        }
+        $(this.$el).addClass('dragging')
       },
       dragend() {
-        this.$el.className = this.$el.className.replace(/\sdragging|dragging\s/g, '').trim()
+        $(this.$el).removeClass('dragging')
       },
       remove() {
         this.dropzone.$emit('removeItem', this)
+        this.onRemove && this.onRemove(this)
       },
       droped() {
         this.dropzone.$emit('moveTemplateToMark', this)
       },
-      mousedown (event) {
-        if (this.onmousedown && typeof this.onmousedown === 'function') {
-          this.onmousedown(event)
-        }
+      mousedown () {
+        this.onMousedown && this.onMousedown(this)
       }
     }
   }
