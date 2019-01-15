@@ -1,7 +1,10 @@
+/**
+ * 全局维护Drag用到的Html元素
+**/
 class DragStore {
   constructor() {
-    this.dragElementContainer = null
-    this.proxyElement = null
+    this.dragElementContainer = null // 全局唯一的container
+    this.proxyElement = null         // 当前被代理的拖拽元素
   }
 
   initProxyContainer(rootNode) {
@@ -13,6 +16,7 @@ class DragStore {
     }
   }
 
+  // 设置被代理的元素,以及拖拽时显示的html
   setProxyElement(element, proxyHtml) {
     this.proxyElement = element
     this.dragElementContainer.innerHTML = proxyHtml

@@ -1,5 +1,5 @@
 <template>
-  <Drag :dropzone="dropzone" @dragmove="dragmove" @dragend="dragend" @droped="droped">
+  <Drag :drop="drop" @dragmove="dragmove" @dragend="dragend" @droped="droped">
     <div @mousedown="mousedown">
       <template v-if="type === 'singleInput'">
         <div class="form-item">
@@ -26,7 +26,7 @@
         type: String,
         default: 'singleInput'
       },
-      dropzone: {
+      drop: {
         type: Object
       },
       options: {
@@ -37,12 +37,6 @@
             placeholder: '请输入'
           }
         }
-      },
-      onMousedown: {
-        type: Function
-      },
-      onRemove: {
-        type: Function
       }
     },
     computed: {
@@ -60,15 +54,16 @@
       dragend() {
         $(this.$el).removeClass('dragging')
       },
-      remove() {
-        this.dropzone.$emit('removeItem', this)
-        this.onRemove && this.onRemove(this)
+      mousedown () {
+        this.$emit('mousedown')
       },
       droped() {
-        this.dropzone.$emit('moveTemplateToMark', this)
+        this.drop.$emit('moveTemplateToMark', this, toIndex => {
+          this.$emit('templateMove', toIndex)
+        })
       },
-      mousedown () {
-        this.onMousedown && this.onMousedown(this)
+      remove() {
+        this.$emit('templateRemove')
       }
     }
   }

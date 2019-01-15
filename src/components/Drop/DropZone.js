@@ -2,13 +2,13 @@ import Vue from 'vue'
 import FormItem from '@/components/FormItem'
 
 export default class DropZone {
-  constructor(el, { left, top, width, height }) {
+  constructor(el, { left, top, width, height, formItems = [] }) {
     this.el = el
     this.left = left
     this.top = top
     this.width = width
     this.height = height
-    this.formItems = [] // 内部Vue实例List
+    this.formItems = formItems // 内部Vue实例List
     this.inserting = {  // 当前插入位置信息
       blockIndex: -1
     },
@@ -35,14 +35,14 @@ export default class DropZone {
       this.addMark(blockIndex)
     } else {
       // 未hover时移除mark
-      this.inserting.blockIndex = -1
+      this.resetInsert()
       this.removeMark()
     }
   }
 
   getHoverIndex(top) {
     if (this.formItems.length) {
-      // 总高度有一个初始值 等于插入标记自身所占高度
+      // 总高度有一个初始值：插入标记自身所占高度
       let totalHeight = this.markHeight
       let i = 0
       for (;i < this.formItems.length; i++) {
@@ -56,7 +56,7 @@ export default class DropZone {
           return i
         }
       }
-      // 高度大于总体元素高度，返回i
+      // 高度大于总体元素高度，返回最大索引
       return i
     } else {
       return 0
@@ -79,45 +79,21 @@ export default class DropZone {
     }
   }
 
-  insertTemplateToMark({ constructor, propsData }, callback) {
-    // 创建并插入空div用于挂载FormItem
-    const div = document.createElement('div')
-    const beforeElement = this.el.childNodes[this.inserting.blockIndex]
-    this.el.insertBefore(div, beforeElement)
-
-    const formItem = new constructor({
-      el: div,
-      propsData
-    })
-
-    // 同步数据模型
-    this.formItems.splice(this.inserting.blockIndex, 0, formItem)
-    this.inserting.blockIndex = -1
-
-    callback && callback(formItem)
-  }
-
-  moveTemplateToMark(item) {
+  getMoveToIndex(item) {
     const moveFrom = this.formItems.indexOf(item)
     const moveTo = this.inserting.blockIndex
-    // moveTo为moveFrom和moveFrom+1则未移动
+    // moveTo为moveFrom 或 moveFrom+1则未移动,不回调
     if (!(moveTo === moveFrom || moveTo === moveFrom + 1)) {
-      // 下标越界(beforeElement不存在)即为append
-      const beforeElement = this.el.childNodes[moveTo]
-      this.el.insertBefore(item.$el, beforeElement)
-      // 同步数据模型
-      this.formItems.splice(moveFrom, 1) 
-      this.formItems.splice(moveTo > moveFrom? moveTo - 1: moveTo, 0, item)
-      this.inserting.blockIndex = -1
+      return (moveTo > moveFrom ? moveTo - 1: moveTo)
     }
+    return -1
   }
 
-  removeItem(item) {
-    const removeIndex = this.formItems.indexOf(item)
-    this.formItems.splice(removeIndex, 1)
-    if (item.$el && item.$el.parentNode) {
-      item.$el.parentNode.removeChild(item.$el)
-    }
-    item.$destroy()
+  setFormItems(items) {
+    this.formItems = items
+  }
+
+  resetInsert() {
+    this.inserting.blockIndex = -1
   }
 }
