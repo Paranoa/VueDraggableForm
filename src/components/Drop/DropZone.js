@@ -1,14 +1,11 @@
-import Vue from 'vue'
-import FormItem from '@/components/FormItem'
-
 export default class DropZone {
-  constructor(el, { left, top, width, height, formItems = [] }) {
+  constructor(el, { left, top, width, height, childs = [] }) {
     this.el = el
     this.left = left
     this.top = top
     this.width = width
     this.height = height
-    this.formItems = formItems // 内部Vue实例List
+    this.childs = childs // 内部Vue实例List
     this.inserting = {  // 当前插入位置信息
       blockIndex: -1
     },
@@ -41,12 +38,12 @@ export default class DropZone {
   }
 
   getHoverIndex(top) {
-    if (this.formItems.length) {
-      // 总高度有一个初始值：插入标记自身所占高度
+    if (this.childs.length) {
+      // 总高度有一个初始值 即插入标记本身所占高度
       let totalHeight = this.markHeight
       let i = 0
-      for (;i < this.formItems.length; i++) {
-        const height = this.formItems[i].$el.offsetHeight
+      for (;i < this.childs.length; i++) {
+        const height = this.childs[i].$el.offsetHeight
         totalHeight += height
         if (totalHeight >= top) {
           // 超过当前元素高度的一半，返回下一个插入位置
@@ -80,7 +77,7 @@ export default class DropZone {
   }
 
   getMoveToIndex(item) {
-    const moveFrom = this.formItems.indexOf(item)
+    const moveFrom = this.childs.indexOf(item)
     const moveTo = this.inserting.blockIndex
     // moveTo为moveFrom 或 moveFrom+1则未移动,不回调
     if (!(moveTo === moveFrom || moveTo === moveFrom + 1)) {
@@ -89,8 +86,8 @@ export default class DropZone {
     return -1
   }
 
-  setFormItems(items) {
-    this.formItems = items
+  setChilds(items) {
+    this.childs = items
   }
 
   resetInsert() {

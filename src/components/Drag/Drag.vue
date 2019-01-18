@@ -83,7 +83,7 @@ export default {
 
         if (this.drop) {
           this.drop.$emit('draggableDragend', index => {
-            index > -1 && this.$emit('droped', index)
+            this.$emit('droped', index)
           })
         }
       }
@@ -92,7 +92,7 @@ export default {
   mounted () {
     if (!Store.getProxyContainer()) {
       Store.initProxyContainer(this.$root.$el)
-    } 
+    }
 
     window.addEventListener('mousemove', this.mousemove)
     window.addEventListener('mouseup', this.mouseup)

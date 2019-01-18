@@ -5,25 +5,20 @@
 </template>
 <script>
 import DropZone from './DropZone.js'
-import FormItem from '@/components/FormItem'
 import { getOffset } from '@/util'
 /**
 * @desc 放置组件
 *
 * @listen [draggableMove]       - 监听drag拖拽中
 * @listen [draggableDragend]    - 监听drag拖拽动作结束
-* @listen [moveTemplateToMark]  - 监听子组件拖拽动作结束时
+* @listen [dropTemplateToMark]  - 监听子组件拖拽动作结束时
 */
 export default {
   updated() {
     // update时 同步更新formItems
     this.$nextTick(() => {
-      this.dropZone.setFormItems(this.$children)
-      this.dropZone.inserting.blockIndex = -1
+      this.dropZone.setChilds(this.$children)
     })
-  },
-  components: {
-    FormItem
   },
   mounted () {
     const el = this.$el
@@ -34,7 +29,7 @@ export default {
       top: offset.top,
       width: el.offsetWidth,
       height: el.offsetHeight,
-      formItems: this.$children,
+      childs: this.$children,
     })
 
     /**
@@ -48,7 +43,8 @@ export default {
     * @param {function} [callback]    - callback将被调用,参数为当前插入的索引
     */
     this.$on('draggableDragend', callback => {
-      callback(this.dropZone.inserting.blockIndex)
+      const index = this.dropZone.inserting.blockIndex
+      index !== -1 && callback(index)
       this.dropZone.removeMark()
       this.dropZone.resetInsert()
     })
@@ -58,7 +54,7 @@ export default {
     * @param {Vue instance} [item]    - 被移动的子组件Vue实例
     * @param {function} [callback]    - 发生移动时,callback将被调用,参数为移动至的索引
     */
-    this.$on('moveTemplateToMark', (item, callback) => {
+    this.$on('dropTemplateToMark', (item, callback) => {
       const moveToIndex = this.dropZone.getMoveToIndex(item) 
       moveToIndex !== -1 && callback(moveToIndex)
     })

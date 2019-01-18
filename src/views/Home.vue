@@ -3,25 +3,22 @@
     <div style="margin-bottom: 20px">
       <Drag
         :drop="drop"
-        @droped="index => droped(index, formItemTemplate.singleInput)">
+        @droped="index => droped(index, 'singleInput')">
         <div class="drag-item">单行输入框</div>
       </Drag>
       <Drag style="margin-left: 10px"
         :drop="drop"
-        @droped="index => droped(index, formItemTemplate.singleSelect)">
+        @droped="index => droped(index, 'singleSelect')">
         <div class="drag-item">单选框</div>
       </Drag>
     </div>
-    <Drop class="drop-zone" ref="drop">
-      <FormItem v-for="(item, index) in items"
-        :class="{ 'active': activeIndex === index }"
-        :type="item.type"
-        :options="item.options"
-        :drop="drop"
-        @mousedown="onTemplateClicked(index)"
-        @templateMove="toIndex => onTemplateMove(index, toIndex)"
-        @templateRemove="onTemplateRemove(index)"/>
-    </Drop>
+    <FormDrop ref="drop"
+      class="drop-zone"
+      :items="items"
+      :activeItem="activeItem"
+      @itemClicked="itemClicked"
+      @itemRemoved="itemRemoved"
+    />
     <div v-if="editOptions" style="float:left; margin-left: 100px; border: 1px solid #aaa">
       <template v-if="editOptions.type === 'singleInput'">
         单行输入框
@@ -35,11 +32,11 @@
         提示文字: <input v-model="editOptions.options.placeholder">
         选项:
         <ul>
-          <li v-for="(opt, index) of editOptions.options.opts">
+          <li v-for="(opt, index) of editOptions.options.opts" :key="index">
             <input v-model="opt.value">
             <span style="padding: 5px" @click="editOptions.options.opts.push({})">+</span>
             <span v-if="editOptions.options.opts.length > 1" style="padding: 5px" @click="editOptions.options.opts.splice(index, 1)">-</span>
-          </li>  
+          </li>
         </ul>
         验证： <input type="checkbox" v-model="editOptions.options.required">
       </template>
@@ -49,79 +46,49 @@
   </div>
 </template>
 <script>
-  import Vue from 'vue'
   import Drag from '@/components/Drag/Drag'
-  import Drop from '@/components/Drop/Drop'
-  import FormItem from '@/components/FormItem'
-  import formItemTemplate from '@/components/FormItemTemplate'
+  import FormDrop from '@/components/FormDrop'
+  import { getTemplateInstance } from '@/components/FormItemTemplate'
+  import { clone } from '@/util'
 
   export default {
     name: 'home',
     components: {
       Drag,
-      Drop,
-      FormItem
+      FormDrop
     },
     data() {
       return {
-        formItemTemplate,
         items: [],
         editOptions: {
           type: '',
           options: null
         },
         drop: null,
-        activeIndex: -1
+        activeItem: null
       }
     },
     methods: {
-      droped(index, options) {
-        this.items.splice(index, 0, {
-          ...options,
-        })
+      droped(index, name) {
+        this.items.splice(index, 0, getTemplateInstance(name))
+        this.itemClicked(index)
       },
-      onTemplateClicked(index) {
-        this.activeIndex = index
+      itemClicked(index) {
+        this.activeItem = this.items[index]
         this.editOptions = this.items[index]
       },
-      onTemplateMove(index, toIndex) {
-        const item = this.items[index]
-        this.items.splice(index, 1) 
-        this.items.splice(toIndex, 0, item)
-      },
-      onTemplateRemove(index) {
+      itemRemoved() {
         // 删除一个模板后，当前编辑选项设为空
-        this.items.splice(index, 1)
-        this.editOptions.type = ''
+        this.editOptions = null
       },
       exportForm() {
         console.log(this.items)
       }
     },
     mounted () {
-      this.drop = this.$refs.drop
-      this.items = [{
-        type: 'singleInput',
-        options: {
-          label: '单行输入框',
-          placeholder: '请输入'
-        }
-      },{
-        type: 'singleSelect',
-        options: {
-          label: '选择',
-          placeholder: '请选择',
-          opts: [{}]
-        }
-      }]
+      // 默认FormDrop的第一个直接子组件是Drop
+      this.drop = this.$refs.drop.$children[0]
+      this.items = getTemplateInstance(['singleInput', 'singleSelect'])
     }
   }
 </script>
-
-<style>
-  .drop-zone-mark { border: 1px solid red; width: 100%; margin: 5px 0;}
-</style>
-<style scoped>
-  .drag-item { width: 200px; height: 40px; border: 1px solid #aaa; background: #eee }
-  .drop-zone { float:left; width: 300px; border: 1px solid #aaa; height: 500px; position: relative; margin-left: 100px }
-</style>

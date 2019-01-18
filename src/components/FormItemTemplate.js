@@ -1,4 +1,6 @@
-export default {
+import { clone } from '@/util'
+
+const template = {
   singleInput: {
     type: 'singleInput',
     options: {
@@ -14,4 +16,22 @@ export default {
       opts: [{}]
     }
   }
+}
+
+const getTemplateInstance = function(names) {
+  if (typeof names === 'string') {
+    return clone(template[names])
+  } else {
+    const result = []
+    for (const name of names) {
+      result.push(clone(template[name]))
+    }
+    return result
+  }
+}
+
+
+export {
+  template,
+  getTemplateInstance
 }
